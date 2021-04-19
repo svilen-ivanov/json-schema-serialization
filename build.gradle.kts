@@ -1,134 +1,130 @@
-import org.jetbrains.kotlin.konan.properties.loadProperties
+import java.net.URI
 
 plugins {
-  kotlin("multiplatform") version "1.4.20"
-  kotlin("plugin.serialization") version "1.4.20"
-  id("org.jetbrains.dokka") version "1.4.10.2"
-  `maven-publish`
+    kotlin("multiplatform") version "1.4.32"
+    kotlin("plugin.serialization") version "1.4.32"
+    id("org.jetbrains.dokka") version "1.4.30"
+    `maven-publish`
 }
 
 repositories {
-  mavenCentral()
-  jcenter()
+    mavenCentral()
+    jcenter()
 }
 
 kotlin {
-  jvm {
-    compilations.all {
-      kotlinOptions.jvmTarget = "1.8"
-    }
-
-    testRuns.all {
-      executionTask {
-        useJUnitPlatform()
-      }
-    }
-  }
-
-  js(BOTH) {
-    nodejs {
-      testTask {
-        with(compilation) {
-          kotlinOptions {
-            moduleKind = "commonjs"
-          }
+    jvm {
+        compilations.all {
+            kotlinOptions.jvmTarget = "1.8"
         }
-      }
-    }
-  }
 
-  mingwX64()
-  linuxX64()
-  macosX64()
-
-  sourceSets {
-    val commonMain by getting {
-      dependencies {
-        implementation(kotlin("reflect"))
-        implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.0.1")
-      }
+        testRuns.all {
+            executionTask {
+                useJUnitPlatform()
+            }
+        }
     }
 
-    val commonTest by getting {
-      dependencies {
-        implementation(kotlin("test-common"))
-        implementation(kotlin("test-annotations-common"))
-      }
+    js(BOTH) {
+        nodejs {
+            testTask {
+                with(compilation) {
+                    kotlinOptions {
+                        moduleKind = "commonjs"
+                    }
+                }
+            }
+        }
     }
 
-    val jvmMain by getting
-    val jvmTest by getting {
-      dependencies {
-        implementation(kotlin("test-junit5"))
-        runtimeOnly("org.junit.jupiter:junit-jupiter-engine:5.0.0")
-      }
-    }
+    mingwX64()
+    linuxX64()
+    macosX64()
 
-    val jsMain by getting
-    val jsTest by getting {
-      dependencies {
-        implementation(kotlin("test-js"))
-      }
-    }
+    sourceSets {
+        val commonMain by getting {
+            dependencies {
+                implementation(kotlin("reflect"))
+                implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.1.0")
+            }
+        }
 
-    val nativeMain by creating {
-      dependsOn(commonMain)
-    }
+        val commonTest by getting {
+            dependencies {
+                implementation(kotlin("test-common"))
+                implementation(kotlin("test-annotations-common"))
+            }
+        }
 
-    val nativeTest by creating {
-      dependsOn(commonTest)
-    }
+        val jvmMain by getting
+        val jvmTest by getting {
+            dependencies {
+                implementation(kotlin("test-junit5"))
+                runtimeOnly("org.junit.jupiter:junit-jupiter-engine:5.0.0")
+            }
+        }
 
-    val mingwX64Main by getting {
-      dependsOn(nativeMain)
-    }
+        val jsMain by getting
+        val jsTest by getting {
+            dependencies {
+                implementation(kotlin("test-js"))
+            }
+        }
 
-    val mingwX64Test by getting {
-      dependsOn(nativeTest)
-    }
+        val nativeMain by creating {
+            dependsOn(commonMain)
+        }
 
-    val linuxX64Main by getting {
-      dependsOn(nativeMain)
-    }
+        val nativeTest by creating {
+            dependsOn(commonTest)
+        }
 
-    val linuxX64Test by getting {
-      dependsOn(nativeTest)
-    }
+        val mingwX64Main by getting {
+            dependsOn(nativeMain)
+        }
 
-    val macosX64Main by getting {
-      dependsOn(nativeMain)
-    }
+        val mingwX64Test by getting {
+            dependsOn(nativeTest)
+        }
 
-    val macosX64Test by getting {
-      dependsOn(nativeTest)
-    }
+        val linuxX64Main by getting {
+            dependsOn(nativeMain)
+        }
 
-    all {
-      languageSettings.useExperimentalAnnotation("kotlin.RequiresOptIn")
-      languageSettings.useExperimentalAnnotation("kotlinx.serialization.ExperimentalSerializationApi")
-      languageSettings.enableLanguageFeature("InlineClasses")
+        val linuxX64Test by getting {
+            dependsOn(nativeTest)
+        }
+
+        val macosX64Main by getting {
+            dependsOn(nativeMain)
+        }
+
+        val macosX64Test by getting {
+            dependsOn(nativeTest)
+        }
+
+        all {
+            languageSettings.useExperimentalAnnotation("kotlin.RequiresOptIn")
+            languageSettings.useExperimentalAnnotation("kotlinx.serialization.ExperimentalSerializationApi")
+            languageSettings.enableLanguageFeature("InlineClasses")
+        }
     }
-  }
 }
 
 publishing {
-  val key = System.getenv("BINTRAY_API_KEY")
-  val user = "ricky12awesome"
+    val username = System.getenv("GITHUB_ACTOR")
+    val password = System.getenv("GITHUB_TOKEN")
 
-  repositories {
-    mavenLocal()
-
-    if (key != null) {
-      maven {
-        name = "bintray"
-        url = uri("https://api.bintray.com/maven/$user/github/json-schema-serialization/;publish=0;override=1")
-
-        credentials {
-          username = user
-          password = key
+    repositories {
+        mavenLocal()
+        maven {
+            name = "GitHubPackages"
+            url = URI("https://maven.pkg.github.com/${username}/json-schema-serialization")
+            credentials {
+                this.username = username
+                this.password = password
+            }
         }
-      }
     }
-  }
 }
 
